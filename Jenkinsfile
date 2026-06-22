@@ -1,7 +1,5 @@
 pipeline {
 agent { label 'AGENT' }
-
-```
 environment {
     PROJECT    = 'expense'
     COMPONENT  = 'backend'
@@ -84,6 +82,6 @@ post {
         echo 'Deployment failed'
     }
 }
-```
+
 
 }
