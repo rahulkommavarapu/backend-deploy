@@ -1,0 +1,6 @@
+# Hel Chart.yaml -> the Chart.yaml file is required for a chart (chart.yson)
+apiVersion: v2
+name: nginx
+version: 1.0.0 # Chart Version
+description:  This is Nginx deployment
+appVersion: 1.2.0 # nginx app version
