@@ -1,62 +1,58 @@
 pipeline {
-    agent {label 'AGENT'}
+    agent { label 'AGENT' }
+
     environment {
         PROJECT = 'expense'
         COMPONENT = 'backend'
-        appVersion = ''
-        ACC_ID  = '377426330809'
+        DEPLOY_TO = 'Production'
+        REGION = 'us-east-1'
     }
+
     options {
         disableConcurrentBuilds()
         timeout(time: 30, unit: 'MINUTES')
     }
 
+    parameters {
+        string(name: 'version', description: 'Enter the application Version')
+    }
+
     stages {
-        stage ('Read Version') {
-            steps {
-                script {
 
-                    def packageJson = readJSON file: 'package.json'
-                    appVersion = packageJson.version
-                    echo "Version is: ${appVersion}"
-                }
+        stage('Deploy') {
+
+            when {
+                environment name: 'DEPLOY_TO', value: 'Production'
             }
-        } 
-        stage ('Install Dependencies') {
+
             steps {
                 script {
-                       sh """
-                           npm install
-                               """
-                }
-            }
-        } 
-        stage ('Docker Build') {
-            steps {
-                script {
-                       
                     withAWS(region: 'us-east-1', credentials: 'aws-creds') {
-                       sh """
-                       aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${ACC_ID}.dkr.ecr.us-east-1.amazonaws.com
-
-                       docker build -t ${ACC_ID}.dkr.ecr.us-east-1.amazonaws.com/${PROJECT}/${COMPONENT}:${appVersion} .
-
-                       docker  push ${ACC_ID}.dkr.ecr.us-east-1.amazonaws.com/${PROJECT}/${COMPONENT}:${appVersion}
-
-                       """
-                       }
+                        sh """
+                            aws eks update-kubeconfig --region ${REGION} --name expense-dev
+                            kubectl get nodes
+                        """
+                    }
                 }
+            }
+        }
+
+        stage('Parallel Stage') {
+            steps {
+                echo "Parallel Stage"
             }
         }
     }
+
     post {
         always {
-            echo 'I will always say Hello again'
-            deleteDir()
+            echo 'I Will Always say hello again'
         }
+
         failure {
-            echo 'I will run when pipeline is failed'
+            echo 'I will run when Pipeline is Failed'
         }
+
         success {
             echo 'I will run when pipeline is success'
         }
