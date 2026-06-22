@@ -1,60 +1,89 @@
 pipeline {
-    agent { label 'AGENT' }
+agent { label 'AGENT' }
 
-    environment {
-        PROJECT = 'expense'
-        COMPONENT = 'backend'
-        DEPLOY_TO = 'Production'
-        REGION = 'us-east-1'
-    }
+```
+environment {
+    PROJECT    = 'expense'
+    COMPONENT  = 'backend'
+    DEPLOY_TO  = 'Production'
+    REGION     = 'us-east-1'
+    CLUSTER    = 'expense-dev'
+}
 
-    options {
-        disableConcurrentBuilds()
-        timeout(time: 30, unit: 'MINUTES')
-    }
+options {
+    disableConcurrentBuilds()
+    timeout(time: 30, unit: 'MINUTES')
+}
 
-    parameters {
-        string(name: 'version', description: 'Enter the application Version')
-    }
+parameters {
+    string(
+        name: 'version',
+        defaultValue: '',
+        description: 'Application Version from CI Pipeline'
+    )
+}
 
-    stages {
+stages {
 
-        stage('Deploy') {
-
-            when {
-                environment name: 'DEPLOY_TO', value: 'Production'
-            }
-
-            steps {
-                script {
-                    withAWS(region: 'us-east-1', credentials: 'aws-creds') {
-                        sh """
-                            aws eks update-kubeconfig --region ${REGION} --name expense-dev
-                            kubectl get nodes
-                        """
-                    }
+    stage('Validate Input') {
+        steps {
+            script {
+                if (!params.version?.trim()) {
+                    error("Version parameter is required")
                 }
-            }
-        }
 
-        stage('Parallel Stage') {
-            steps {
-                echo "Parallel Stage"
+                echo "Deploying version: ${params.version}"
             }
         }
     }
 
-    post {
-        always {
-            echo 'I Will Always say hello again'
+    stage('Connect To EKS') {
+        when {
+            environment name: 'DEPLOY_TO', value: 'Production'
         }
 
-        failure {
-            echo 'I will run when Pipeline is Failed'
-        }
+        steps {
+            withAWS(region: "${REGION}", credentials: 'aws-creds') {
+                sh """
+                    aws eks update-kubeconfig \
+                        --region ${REGION} \
+                        --name ${CLUSTER}
 
-        success {
-            echo 'I will run when pipeline is success'
+                    kubectl get nodes
+                """
+            }
         }
     }
+
+    stage('Deploy Application') {
+        steps {
+            withAWS(region: "${REGION}", credentials: 'aws-creds') {
+                sh """
+                    kubectl set image deployment/backend \
+                    backend=377426330809.dkr.ecr.us-east-1.amazonaws.com/expense/backend:${params.version} \
+                    -n expense
+
+                    kubectl rollout status deployment/backend -n expense
+                """
+            }
+        }
+    }
+}
+
+post {
+    always {
+        echo 'I Will Always say hello again'
+        deleteDir()
+    }
+
+    success {
+        echo 'Deployment completed successfully'
+    }
+
+    failure {
+        echo 'Deployment failed'
+    }
+}
+```
+
 }
