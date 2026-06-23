@@ -1,28 +1,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx
+  name: backend
+  namespace: expense
   # labels of deployment resource
   labels:
-    app: nginx
-    tier: frontend
-    purpose: deployment
+    app: backend
+    tier: backend
+    project: expense
 spec:
-  replicas: {{ .Values.deployment.replicas }} #assume this will change
+  replicas: 1
   selector:
     matchLabels:
-      app: nginx
-      tier: frontend
-      purpose: deployment
+      app: backend
+      tier: backend
+      project: expense
   template:
     metadata:
       labels:
-        app: nginx
-        tier: frontend
-        purpose: deployment
+        app: backend
+        tier: backend
+        project: expense
     spec:
       containers:
       - name: nginx
-        image: nginx:{{ .Values.deployment.imageVersion }} # image version frequently changes
-        ports:
-        - containerPort: 80
+        image: "{{ .Values.deployment.imageURL }}:{{ .Values.deployment.version }}"
+        envFrom:
+        - configMapRef:
+            name: backend
