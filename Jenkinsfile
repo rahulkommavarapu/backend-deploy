@@ -17,7 +17,7 @@ pipeline {
     parameters {
         booleanParam(
             name: 'TOGGLE', defaultValue: true, description: 'Toggle this value'
-            choice(name: 'deploy_to',defaultValue: 'dev',choices: ['dev', 'qa', 'prod'], description: 'Pick something')
+            choice(name: 'deploy_to',choices: ['dev', 'qa', 'prod'], description: 'Pick something')
         )
     }
     stages {
