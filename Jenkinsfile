@@ -2,8 +2,8 @@ pipeline {
     agent { label 'AGENT' }
 
     environment {
-        PROJECT = 'EXPENSE'
-        COMPONENT = 'BACKEND'
+        PROJECT = 'expense'
+        COMPONENT = 'backend'
         DEPLOY_TO = 'Production'
         REGION = 'us-east-1'
         appVersion = ''
