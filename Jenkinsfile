@@ -51,9 +51,9 @@ pipeline {
             }
         steps{
             script{
-                sh " " "
+                sh """
                 echo 'Functional tests will be performed after DEV deployment useually this are automated by Selenium test cases Written by Testing Team. if this test Cases are Failed  Pipeline also Faile'
-                " " "
+                """
             }
         }
 
