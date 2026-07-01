@@ -30,21 +30,21 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
-            steps {
-                script {
-                    withAWS(region: 'us-east-1', credentials: 'aws-creds') {
-                        sh """
-                            aws eks update-kubeconfig --region $REGION --name expense-${environment}
-                            kubectl get nodes
-                            cd helm
-                            sed -i 's/IMAGE_VERSION/${params.version}/g' values-${environment}.yaml 
-                            helm upgrade --install $COMPONENT -n $PROJECT -f values-${environment}.yaml .
-                        """
-                    }
-                }
-            }
-        }
+        // stage('Deploy') {
+        //     steps {
+        //         script {
+        //             withAWS(region: 'us-east-1', credentials: 'aws-creds') {
+        //                 sh """
+        //                     aws eks update-kubeconfig --region $REGION --name expense-${environment}
+        //                     kubectl get nodes
+        //                     cd helm
+        //                     sed -i 's/IMAGE_VERSION/${params.version}/g' values-${environment}.yaml 
+        //                     helm upgrade --install $COMPONENT -n $PROJECT -f values-${environment}.yaml .
+        //                 """
+        //             }
+        //         }
+        //     }
+        // }
         stage('Funtional Tests'){
             when{
                    expression {params.deploy_to == 'DEV'}
